@@ -15,7 +15,8 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - PORT=8080
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
@@ -23,7 +24,7 @@ services:
   db:
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -33,7 +34,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
