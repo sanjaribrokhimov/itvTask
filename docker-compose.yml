@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=3210
+      - DB_NAME=movies_db
+      - JWT_SECRET=7x!A%D*G-KaPdSgVkYp3s6v9y$B&E(H+MbQeThWmZq4t7w!z%C*F-J@NcRfUjXn2r
+      - PORT=8080
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=3210
+      - POSTGRES_DB=movies_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 
